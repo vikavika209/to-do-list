@@ -21,30 +21,34 @@ public class TaskService {
         return savedTask;
     }
 
-    public Optional<Task> getTask(long id) {
-        log.info("Получение задачи с id: ", id);
+    public Optional<Task> getTask(Long id) {
+        log.info("Получение задачи с id: {}", id);
         return taskRepository.findById(id);
     }
 
-    public Task updateTask(Task task) {
-        Task getTask = taskRepository.findById(task.getId())
+    public Task updateTask(Long id, Task task) {
+        log.info("Получена задача: {}", task);
+
+        Task getTask = taskRepository.findById(id)
                 .orElseThrow(() -> new WrongIdException("Задача не найдена: " + task.getId()));
 
-        log.info("Задача до обновления: ", getTask);
+        log.info("Задача до обновления: {}", getTask.toString());
 
         getTask.setName(task.getName());
         getTask.setDone(task.isDone());
 
-        log.info("Задача обновлена: {}", getTask);
+        Task savedTask = taskRepository.save(getTask);
 
-        return getTask;
+        log.info("Задача обновлена: {}", savedTask);
+
+        return savedTask;
     }
 
     public List<Task> getTasks() {
         return taskRepository.findAll();
     }
 
-    public void deleteTask(long id) {
+    public void deleteTask(Long id) {
         Optional<Task> optionalTask = getTask(id);
 
         if (optionalTask.isEmpty()) {
