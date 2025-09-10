@@ -14,7 +14,7 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="is_done" type="BOOLEAN">
+            <column name="done" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
         </createTable>

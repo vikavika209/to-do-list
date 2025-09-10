@@ -17,13 +17,22 @@ import java.util.List;
 public class TaskController {
     private final TaskService taskService;
 
-    @PostMapping("new")
+    @PostMapping("/new")
     public ResponseEntity<Task> createTask(@RequestBody Task task) {
         Task saved = taskService.addTask(task);
         return ResponseEntity.ok(saved);
     }
 
-    @GetMapping("all_tasks")
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
+        try {
+            return ResponseEntity.ok(taskService.updateTask(id, task));
+        }catch (WrongIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Задача с %d не найдена".formatted(id));
+        }
+    }
+
+    @GetMapping("/all_tasks")
     public ResponseEntity<List<Task>> getAllTasks() {
         return ResponseEntity.ok(taskService.getTasks());
     }

@@ -7,9 +7,9 @@ import jakarta.persistence.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "tasks")
+@EqualsAndHashCode
 @Getter
 @Setter
-@EqualsAndHashCode
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,11 +18,20 @@ public class Task {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "is_done", nullable = false)
-    boolean isDone;
+    @Column(name = "done", nullable = false)
+    boolean done;
 
-    public Task(String name) {
+    public Task(String name, boolean done) {
         this.name = name;
-        this.isDone = false;
+        this.done = done;
+    }
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", done=" +  +
+                '}';
     }
 }
