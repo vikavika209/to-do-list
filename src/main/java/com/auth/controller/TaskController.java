@@ -4,12 +4,12 @@ import com.auth.entity.Task;
 import com.auth.exception.WrongIdException;
 import com.auth.service.TaskService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -23,7 +23,7 @@ public class TaskController {
         return ResponseEntity.ok(saved);
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/admin/update/{id}")
     public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
         try {
             return ResponseEntity.ok(taskService.updateTask(id, task));
@@ -32,19 +32,29 @@ public class TaskController {
         }
     }
 
+    @PutMapping("/admin/{id}")
+    public ResponseEntity<String> updateTaskStatus(@PathVariable Long id) {
+        try {
+            taskService.markAsDoneTask(id);
+            return ResponseEntity.ok("Задача выполнена");
+        }catch (WrongIdException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Задача с %d не найдена".formatted(id));
+        }
+    }
+
     @GetMapping("/all_tasks")
-    public ResponseEntity<List<Task>> getAllTasks() {
-        return ResponseEntity.ok(taskService.getTasks());
+    public ResponseEntity<Page<Task>> getAllTasks(Pageable pageable) {
+        return ResponseEntity.ok(taskService.getTasks(pageable));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable("id") Long id) {
-        return taskService.getTask(id)
+        return taskService.getTaskById(id)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Задача с %d не найдена".formatted(id)));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/admin/delete/{id}")
     public ResponseEntity<String> deleteTask(@PathVariable("id") Long id) {
         try{
             taskService.deleteTask(id);
@@ -52,5 +62,15 @@ public class TaskController {
         }catch (WrongIdException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Не удалось найти задачу с id: " + id);
         }
+    }
+
+    @GetMapping("/undone")
+    public ResponseEntity<Page<Task>> getUndoneTasks(Pageable pageable) {
+        return ResponseEntity.ok(taskService.getUndoneTasks(pageable));
+    }
+
+    @GetMapping("/done")
+    public ResponseEntity<Page<Task>> getDoneTasks(Pageable pageable) {
+        return ResponseEntity.ok(taskService.getUndoneTasks(pageable));
     }
 }

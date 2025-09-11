@@ -21,6 +21,9 @@ public class Task {
     @Column(name = "done", nullable = false)
     boolean done;
 
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
     public Task(String name, boolean done) {
         this.name = name;
         this.done = done;
@@ -31,7 +34,8 @@ public class Task {
         return "Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", done=" +  +
+                ", done=" + done +
+                ", userId=" + userId +
                 '}';
     }
 }
