@@ -95,5 +95,28 @@ public class TaskService {
         return new PageImpl<>(allTasks, pageable, allTasks.size());
     }
 
+    public Page<Task> getAllTasksByUserId(Long userId, Pageable pageable){
+       List<Task> allTasksByUserId = taskRepository.findAll().stream()
+               .filter(t -> t.getUserId().equals(userId))
+               .collect(Collectors.toList());
+       return new PageImpl<>(allTasksByUserId, pageable, allTasksByUserId.size());
+    }
+
+    public Page<Task> getAllUndoneTasksByUserId(Long userId, Pageable pageable){
+        List<Task> allTasksByUserId = taskRepository.findAll().stream()
+                .filter(t -> t.getUserId().equals(userId))
+                .filter(t -> t.isDone() == false)
+                .collect(Collectors.toList());
+        return new PageImpl<>(allTasksByUserId, pageable, allTasksByUserId.size());
+    }
+
+    public Page<Task> getAllDoneTasksByUserId(Long userId, Pageable pageable){
+        List<Task> allTasksByUserId = taskRepository.findAll().stream()
+                .filter(t -> t.getUserId().equals(userId))
+                .filter(t -> t.isDone() == true)
+                .collect(Collectors.toList());
+        return new PageImpl<>(allTasksByUserId, pageable, allTasksByUserId.size());
+    }
+
 
 }

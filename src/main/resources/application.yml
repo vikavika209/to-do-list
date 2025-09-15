@@ -7,3 +7,6 @@ spring:
     hibernate.ddl-auto: validate
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
+
+app:
+  export-dir: ${APP_EXPORT_DIR:/data/exports}
