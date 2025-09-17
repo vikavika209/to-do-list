@@ -21,8 +21,9 @@ public class Task {
     @Column(name = "done", nullable = false)
     boolean done;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Task(String name, boolean done) {
         this.name = name;
@@ -35,7 +36,7 @@ public class Task {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", done=" + done +
-                ", userId=" + userId +
+                ", user=" + (user != null ? user.getUsername() : "null") +
                 '}';
     }
 }

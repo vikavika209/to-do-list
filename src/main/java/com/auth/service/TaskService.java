@@ -3,21 +3,34 @@ package com.auth.service;
 import com.auth.entity.Task;
 import com.auth.exception.WrongIdException;
 import com.auth.repository.TaskRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class TaskService {
     private final TaskRepository taskRepository;
+
+    @Value("${app.export-dir}")
+    private String exportDir;
 
     public Task addTask(Task task) {
         Task savedTask = taskRepository.save(task);
@@ -97,14 +110,14 @@ public class TaskService {
 
     public Page<Task> getAllTasksByUserId(Long userId, Pageable pageable){
        List<Task> allTasksByUserId = taskRepository.findAll().stream()
-               .filter(t -> t.getUserId().equals(userId))
+               .filter(t -> t.getUser().getId().equals(userId))
                .collect(Collectors.toList());
        return new PageImpl<>(allTasksByUserId, pageable, allTasksByUserId.size());
     }
 
     public Page<Task> getAllUndoneTasksByUserId(Long userId, Pageable pageable){
         List<Task> allTasksByUserId = taskRepository.findAll().stream()
-                .filter(t -> t.getUserId().equals(userId))
+                .filter(t -> t.getUser().getId().equals(userId))
                 .filter(t -> t.isDone() == false)
                 .collect(Collectors.toList());
         return new PageImpl<>(allTasksByUserId, pageable, allTasksByUserId.size());
@@ -112,11 +125,67 @@ public class TaskService {
 
     public Page<Task> getAllDoneTasksByUserId(Long userId, Pageable pageable){
         List<Task> allTasksByUserId = taskRepository.findAll().stream()
-                .filter(t -> t.getUserId().equals(userId))
+                .filter(t -> t.getUser().getId().equals(userId))
                 .filter(t -> t.isDone() == true)
                 .collect(Collectors.toList());
         return new PageImpl<>(allTasksByUserId, pageable, allTasksByUserId.size());
     }
 
+    private void exportToFile (Page<Task> tasks, String fileName, OutputStream out) throws IOException {
+        Path dirPath = Paths.get(exportDir);
+        Files.createDirectories(dirPath);
 
+        Path path = dirPath.resolve(fileName);
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Tasks");
+
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("ID");
+            headerRow.createCell(1).setCellValue("Name");
+            headerRow.createCell(2).setCellValue("Done");
+            headerRow.createCell(3).setCellValue("User ID");
+
+            int rowNum = 1;
+            for (Task task : tasks.getContent()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(task.getId());
+                row.createCell(1).setCellValue(task.getName());
+                row.createCell(2).setCellValue(task.isDone());
+                row.createCell(3).setCellValue(task.getUser() != null ? task.getUser().getId() : -1);
+            }
+            workbook.write(out);
+        }
+
+    }
+
+    public void exportAllTasks(OutputStream out) throws IOException {
+        Page<Task> tasks = getTasks(Pageable.unpaged());
+        exportToFile(tasks, "all_tasks.xlsx", out);
+    }
+
+    public void exportUndoneTasks(OutputStream out) throws IOException {
+        Page<Task> tasks = getUndoneTasks(Pageable.unpaged());
+        exportToFile(tasks, "undone_tasks.xlsx", out);
+    }
+
+    public void exportDoneTasks(OutputStream out) throws IOException {
+        Page<Task> tasks = getDoneTasks(Pageable.unpaged());
+        exportToFile(tasks, "done_tasks.xlsx", out);
+    }
+
+    public void exportAllTasksByUserId(Long id, OutputStream out) throws IOException {
+        Page<Task> tasks = getAllTasksByUserId(id, Pageable.unpaged());
+        exportToFile(tasks, "all_tasks_" + id + ".xlsx", out);
+    }
+
+    public void exportUndoneTasksByUserId(Long id, OutputStream out) throws IOException {
+        Page<Task> tasks = getAllUndoneTasksByUserId(id, Pageable.unpaged());
+        exportToFile(tasks, "undone_tasks_" + id + ".xlsx", out);
+    }
+
+    public void exportDoneTasksByUserId(Long id, OutputStream out) throws IOException {
+        Page<Task> tasks = getAllDoneTasksByUserId(id, Pageable.unpaged());
+        exportToFile(tasks, "done_tasks_" + id + ".xlsx", out);
+    }
 }

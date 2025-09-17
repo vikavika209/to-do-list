@@ -6,7 +6,25 @@
           http://www.liquibase.org/xml/ns/dbchangelog
           http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
 
-    <changeSet id="1-create-tasks-table" author="vikavika209">
+    <changeSet id="1-create-users" author="vikavika209">
+        <createTable tableName="users">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="users"
+                             columnNames="username"
+                             constraintName="uk_users_username"/>
+    </changeSet>
+
+    <changeSet id="2-create-tasks" author="vikavika209">
         <createTable tableName="tasks">
             <column name="id" type="BIGSERIAL">
                 <constraints primaryKey="true" nullable="false"/>
@@ -14,25 +32,53 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="done" type="BOOLEAN">
+            <column name="done" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
 
+        <addForeignKeyConstraint
+                baseTableName="tasks"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_tasks_user"/>
+
+        <createIndex tableName="tasks" indexName="idx_tasks_user_id">
+            <column name="user_id"/>
+        </createIndex>
         <createIndex tableName="tasks" indexName="idx_tasks_name">
             <column name="name"/>
         </createIndex>
     </changeSet>
 
-    <changeSet id="2-add-user-id-to-tasks" author="vikavika209">
-        <addColumn tableName="tasks">
+    <changeSet id="3-create-user-roles" author="vikavika209">
+        <createTable tableName="user_roles">
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-        </addColumn>
+            <column name="role" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
 
-        <createIndex tableName="tasks" indexName="idx_tasks_user_id">
+        <addForeignKeyConstraint
+                baseTableName="user_roles"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="fk_user_roles_user"/>
+
+        <addUniqueConstraint tableName="user_roles"
+                             columnNames="user_id, role"
+                             constraintName="uk_user_roles_user_role"/>
+
+        <createIndex tableName="user_roles" indexName="idx_user_roles_user_id">
             <column name="user_id"/>
         </createIndex>
     </changeSet>
+
 </databaseChangeLog>
