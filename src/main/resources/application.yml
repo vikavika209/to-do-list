@@ -7,3 +7,11 @@ spring:
     hibernate.ddl-auto: validate
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
+
+app:
+  export-dir: ${APP_EXPORT_DIR:/data/exports}
+
+security:
+  jwt:
+    secret: "change-me-please-change-me-please-32-bytes-min"
+    ttl: PT1H

@@ -21,6 +21,10 @@ public class Task {
     @Column(name = "done", nullable = false)
     boolean done;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     public Task(String name, boolean done) {
         this.name = name;
         this.done = done;
@@ -31,7 +35,8 @@ public class Task {
         return "Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", done=" +  +
+                ", done=" + done +
+                ", user=" + (user != null ? user.getUsername() : "null") +
                 '}';
     }
 }
